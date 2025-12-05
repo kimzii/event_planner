@@ -1,32 +1,17 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Event } from "./types/event";
 import EventCard from "../components/EventCards";
-import Header from "../components/Header";
-import CreateEventModal from "../components/CreateEventModal";
 
 export default function Home() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (session) {
-      fetchEvents();
-    }
-  }, [session]);
+    fetchEvents();
+  }, []);
 
   const fetchEvents = async () => {
     try {
@@ -48,39 +33,33 @@ export default function Home() {
     }
   };
 
-  if (status === "loading") {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg text-zinc-600">
-          Loading...
-        </div>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <Header onCreateEvent={() => setShowModal(true)} />
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold tracking-tight text-zinc-50 mb-4">
+            Discover Amazing Events
+          </h1>
+          <p className="text-lg text-zinc-300">
+            Browse and join events happening around you
+          </p>
+        </div>
 
         {/* Events List */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-zinc-50">
+          <h2 className="text-2xl font-semibold text-zinc-50">
             All Events
           </h2>
 
           {loading ? (
-            <div className="text-center py-12 text-zinc-600">
+            <div className="text-center py-12 text-zinc-400">
               Loading events...
             </div>
           ) : events.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg border border-zinc-200">
-              <p className="text-zinc-600">
-                No events yet. Create your first event!
+            <div className="text-center py-12 bg-zinc-800 rounded-lg border border-zinc-700">
+              <p className="text-zinc-400">
+                No events available at this time.
               </p>
             </div>
           ) : (
@@ -92,12 +71,6 @@ export default function Home() {
           )}
         </div>
       </div>
-
-      <CreateEventModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onEventCreated={fetchEvents}
-      />
     </div>
   );
 }
