@@ -15,6 +15,7 @@ export default function EventCard({ event }: EventCardProps) {
             alt={event.title}
             fill
             className="object-cover"
+            loading="eager"
           />
         </div>
       )}
