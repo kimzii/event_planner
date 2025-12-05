@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
@@ -8,7 +8,6 @@ import { Event } from "./types/event";
 import EventCard from "../components/EventCards";
 import Header from "../components/Header";
 import CreateEventModal from "../components/CreateEventModal";
-import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -52,7 +51,7 @@ export default function Home() {
   if (status === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg text-zinc-600 dark:text-zinc-400">
+        <div className="text-lg text-zinc-600">
           Loading...
         </div>
       </div>
@@ -66,32 +65,32 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <Header />
+        <Header onCreateEvent={() => setShowModal(true)} />
+
         {/* Events List */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">All Events</h2>
-            <Button onClick={() => setShowModal(true)}>+ New Event</Button>
-          </div>
-        </div>
+          <h2 className="text-xl font-semibold text-zinc-50">
+            All Events
+          </h2>
 
-        {loading ? (
-          <div className="text-center py-12 text-zinc-600 dark:text-zinc-400">
-            Loading events...
-          </div>
-        ) : events.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-            <p className="text-zinc-600 dark:text-zinc-400">
-              No events yet. Create your first event!
-            </p>
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {events.map((event) => (
-              <EventCard key={event.id} event={event} />
-            ))}
-          </div>
-        )}
+          {loading ? (
+            <div className="text-center py-12 text-zinc-600">
+              Loading events...
+            </div>
+          ) : events.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-lg border border-zinc-200">
+              <p className="text-zinc-600">
+                No events yet. Create your first event!
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {events.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <CreateEventModal

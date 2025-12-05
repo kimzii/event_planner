@@ -12,6 +12,19 @@ interface CreateEventModalProps {
   onEventCreated: () => void;
 }
 
+const CATEGORIES = [
+  "Conference",
+  "Workshop",
+  "Seminar",
+  "Networking",
+  "Social",
+  "Sports",
+  "Concert",
+  "Festival",
+  "Fundraiser",
+  "Other",
+];
+
 export default function CreateEventModal({
   isOpen,
   onClose,
@@ -25,7 +38,10 @@ export default function CreateEventModal({
     title: "",
     description: "",
     event_date: "",
+    time_from: "",
+    time_to: "",
     location: "",
+    category: "",
   });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,7 +102,15 @@ export default function CreateEventModal({
 
       if (error) throw error;
 
-      setFormData({ title: "", description: "", event_date: "", location: "" });
+      setFormData({
+        title: "",
+        description: "",
+        event_date: "",
+        time_from: "",
+        time_to: "",
+        location: "",
+        category: "",
+      });
       setImageFile(null);
       setImagePreview(null);
       onEventCreated();
@@ -150,6 +174,27 @@ export default function CreateEventModal({
             />
           </div>
 
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              Category
+            </label>
+            <select
+              value={formData.category}
+              onChange={(e) =>
+                setFormData({ ...formData, category: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
+            >
+              <option value="">Select a category</option>
+              {CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
@@ -171,7 +216,7 @@ export default function CreateEventModal({
               Date *
             </label>
             <input
-              type="datetime-local"
+              type="date"
               required
               value={formData.event_date}
               onChange={(e) =>
@@ -179,6 +224,38 @@ export default function CreateEventModal({
               }
               className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
             />
+          </div>
+
+          {/* Time From and Time To */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                Time From *
+              </label>
+              <input
+                type="time"
+                required
+                value={formData.time_from}
+                onChange={(e) =>
+                  setFormData({ ...formData, time_from: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                Time To *
+              </label>
+              <input
+                type="time"
+                required
+                value={formData.time_to}
+                onChange={(e) =>
+                  setFormData({ ...formData, time_to: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
+              />
+            </div>
           </div>
 
           {/* Location */}
