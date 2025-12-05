@@ -20,29 +20,26 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link
-            href="/"
-            className="text-xl font-bold text-zinc-50"
-          >
+          <Link href="/" className="text-xl font-bold text-zinc-50">
             Event Planner
           </Link>
 
-          {/* Navigation Links */}
-          <div className="flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-zinc-50 ${
-                  pathname === link.href
-                    ? "text-zinc-50"
-                    : "text-zinc-400"
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
+          {/* Navigation Links - Only show when logged in */}
+          {session && (
+            <div className="flex items-center gap-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`text-sm font-medium transition-colors hover:text-zinc-50 ${
+                    pathname === link.href ? "text-zinc-50" : "text-zinc-400"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          )}
 
           {/* Auth Buttons */}
           <div className="flex items-center gap-2">
