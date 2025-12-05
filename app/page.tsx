@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Event } from "./types/event";
 import EventCard from "../components/EventCards";
+import Image from "next/image";
 
 export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -37,20 +38,27 @@ export default function Home() {
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-8">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tight text-zinc-50 mb-4">
-            Discover Amazing Events
-          </h1>
-          <p className="text-lg text-zinc-300">
-            Browse and join events happening around you
-          </p>
+        <div className="mb-12 flex flex-col md:flex-row items-center justify-center gap-10">
+          <div>
+            <h1 className="text-6xl font-bold tracking-tight text-zinc-50 mb-4">
+              Discover Amazing Events
+            </h1>
+            <p className="text-xl text-zinc-300">
+              Secure your spot and join the most anticipated events happening near you. RSVP is quick and easy!
+            </p>
+          </div>
+
+          <Image
+            src="/meet.svg"
+            alt="Hero Image"
+            width={500}
+            height={200}
+          />
         </div>
 
         {/* Events List */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-zinc-50">
-            All Events
-          </h2>
+          <h2 className="text-2xl font-semibold text-zinc-50">All Events</h2>
 
           {loading ? (
             <div className="text-center py-12 text-zinc-400">
@@ -58,9 +66,7 @@ export default function Home() {
             </div>
           ) : events.length === 0 ? (
             <div className="text-center py-12 bg-zinc-800 rounded-lg border border-zinc-700">
-              <p className="text-zinc-400">
-                No events available at this time.
-              </p>
+              <p className="text-zinc-400">No events available at this time.</p>
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

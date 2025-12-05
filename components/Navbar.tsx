@@ -57,7 +57,7 @@ export default function Navbar() {
                 </Button>
               </>
             ) : (
-              <Button onClick={() => signIn("google")} size="sm">
+              <Button variant={"outline"} onClick={() => signIn("google")} size="sm">
                 Login
               </Button>
             )}
