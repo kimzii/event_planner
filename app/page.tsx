@@ -7,12 +7,15 @@ import { supabase } from "../lib/supabase";
 import { Event } from "./types/event";
 import EventCard from "../components/EventCards";
 import Header from "../components/Header";
+import CreateEventModal from "../components/CreateEventModal";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -63,37 +66,39 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <Header/>
+        <Header />
         {/* Events List */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">
-              All Events
-            </h2>
-            <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-              + New Event
-            </button>
+            <h2 className="text-xl font-semibold text-white">All Events</h2>
+            <Button onClick={() => setShowModal(true)}>+ New Event</Button>
           </div>
-
-          {loading ? (
-            <div className="text-center py-12 text-zinc-600 dark:text-zinc-400">
-              Loading events...
-            </div>
-          ) : events.length === 0 ? (
-            <div className="text-center py-12 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-              <p className="text-zinc-600 dark:text-zinc-400">
-                No events yet. Create your first event!
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {events.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
-          )}
         </div>
+
+        {loading ? (
+          <div className="text-center py-12 text-zinc-600 dark:text-zinc-400">
+            Loading events...
+          </div>
+        ) : events.length === 0 ? (
+          <div className="text-center py-12 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+            <p className="text-zinc-600 dark:text-zinc-400">
+              No events yet. Create your first event!
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {events.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+        )}
       </div>
+
+      <CreateEventModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onEventCreated={fetchEvents}
+      />
     </div>
   );
 }
