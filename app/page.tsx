@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Event } from "./types/event";
+import EventCard from "../components/EventCards";
+import Header from "../components/Header";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -59,30 +61,13 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-              Welcome, {session.user?.name}!
-            </h1>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Browse all events
-            </p>
-          </div>
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
-            Sign Out
-          </button>
-        </div>
-
+        <Header/>
         {/* Events List */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+            <h2 className="text-xl font-semibold text-white">
               All Events
             </h2>
             <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
@@ -103,29 +88,7 @@ export default function Home() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {events.map((event) => (
-                <div
-                  key={event.id}
-                  className="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-6 hover:shadow-md transition-shadow"
-                >
-                  <h3 className="font-semibold text-lg text-zinc-900 dark:text-zinc-50 mb-2">
-                    {event.title}
-                  </h3>
-                  {event.description && (
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                      {event.description}
-                    </p>
-                  )}
-                  <div className="space-y-1 text-sm">
-                    <p className="text-zinc-700 dark:text-zinc-300">
-                      📅 {new Date(event.event_date).toLocaleDateString()}
-                    </p>
-                    {event.location && (
-                      <p className="text-zinc-700 dark:text-zinc-300">
-                        📍 {event.location}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <EventCard key={event.id} event={event} />
               ))}
             </div>
           )}
