@@ -25,6 +25,7 @@ export default function MyEventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -56,6 +57,44 @@ export default function MyEventsPage() {
       console.error("Error fetching events:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (eventId: string, imageUrl?: string) => {
+    if (!confirm("Are you sure you want to delete this event?")) {
+      return;
+    }
+
+    setDeletingId(eventId);
+
+    try {
+      // Delete image from storage if it exists
+      if (imageUrl) {
+        const imagePath = imageUrl.split("/").pop();
+        if (imagePath) {
+          await supabase.storage.from("event-images").remove([imagePath]);
+        }
+      }
+
+      // Delete event from database
+      const { error } = await supabase
+        .from("events")
+        .delete()
+        .eq("id", eventId)
+        .eq("user_id", session?.user?.id); // Extra security check
+
+      if (error) throw error;
+
+      // Update local state
+      setEvents(events.filter((event) => event.id !== eventId));
+      alert("Event deleted successfully!");
+    } catch (error: unknown) {
+      console.error("Error deleting event:", error);
+      alert(
+        error instanceof Error ? error.message : "Failed to delete event"
+      );
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -180,8 +219,16 @@ export default function MyEventsPage() {
                           <Button variant="ghost" size="sm">
                             Edit
                           </Button>
-                          <Button variant="ghost" size="sm">
-                            Delete
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              handleDelete(event.id, event.image_url)
+                            }
+                            disabled={deletingId === event.id}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
+                          >
+                            {deletingId === event.id ? "Deleting..." : "Delete"}
                           </Button>
                         </div>
                       </TableCell>
