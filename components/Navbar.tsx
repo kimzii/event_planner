@@ -12,7 +12,6 @@ export default function Navbar() {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/my-events", label: "My Events" },
-    { href: "/calendar", label: "Calendar" },
   ];
 
   return (

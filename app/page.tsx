@@ -38,7 +38,7 @@ export default function Home() {
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-8">
         {/* Hero Section */}
-        <div className="mb-12 flex flex-col md:flex-row items-center justify-center gap-10">
+        <div className="py-14 flex flex-col md:flex-row items-center justify-center gap-10">
           <div>
             <h1 className="text-6xl font-bold tracking-tight text-zinc-50 mb-4">
               Discover Amazing Events
