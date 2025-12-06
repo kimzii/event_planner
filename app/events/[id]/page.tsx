@@ -134,60 +134,9 @@ export default function EventDetailPage() {
                   {event.title}
                 </h1>
 
-                {/* Event Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div className="flex items-start gap-3">
-                    <Calendar className="h-5 w-5 text-zinc-500 dark:text-zinc-400 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                        Date
-                      </p>
-                      <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-                        {new Date(event.event_date).toLocaleDateString(
-                          "en-US",
-                          {
-                            weekday: "long",
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          }
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  {event.time_from && event.time_to && (
-                    <div className="flex items-start gap-3">
-                      <Clock className="h-5 w-5 text-zinc-500 dark:text-zinc-400 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                          Time
-                        </p>
-                        <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-                          {event.time_from} - {event.time_to}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {event.location && (
-                    <div className="flex items-start gap-3 md:col-span-2">
-                      <MapPin className="h-5 w-5 text-zinc-500 dark:text-zinc-400 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                          Location
-                        </p>
-                        <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-                          {event.location}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 {/* Description */}
                 {event.description && (
-                  <div className="mt-8 pt-8 border-t border-zinc-200 dark:border-zinc-700">
+                  <div className="mt-6">
                     <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50 mb-4">
                       About this event
                     </h2>
@@ -210,36 +159,95 @@ export default function EventDetailPage() {
             </div>
           </div>
 
-          {/* Related Events Sidebar */}
+          {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-8">
-              <h2 className="text-2xl font-bold text-zinc-50 mb-4">
-                Related Events
-              </h2>
-
-              {relatedEvents.length === 0 ? (
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-6 text-center">
-                  <p className="text-zinc-400">
-                    No related events available at this time.
-                  </p>
-                </div>
-              ) : (
+            <div className="sticky top-8 space-y-6">
+              {/* Event Details Card */}
+              <div className="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-6">
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mb-4">
+                  Event Details
+                </h2>
                 <div className="space-y-4">
-                  {relatedEvents.map((relatedEvent) => (
-                    <EventCard key={relatedEvent.id} event={relatedEvent} />
-                  ))}
-                </div>
-              )}
+                  <div className="flex items-start gap-3">
+                    <Calendar className="h-5 w-5 text-zinc-500 dark:text-zinc-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                        Date
+                      </p>
+                      <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+                        {new Date(event.event_date).toLocaleDateString(
+                          "en-US",
+                          {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          }
+                        )}
+                      </p>
+                    </div>
+                  </div>
 
-              {relatedEvents.length > 0 && event.category && (
-                <Button
-                  variant="outline"
-                  className="w-full mt-4 bg-white/10 border-white/20 text-zinc-50 hover:bg-white/20"
-                  onClick={() => router.push(`/?category=${event.category}`)}
-                >
-                  View all {event.category} events
-                </Button>
-              )}
+                  {event.time_from && event.time_to && (
+                    <div className="flex items-start gap-3">
+                      <Clock className="h-5 w-5 text-zinc-500 dark:text-zinc-400 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                          Time
+                        </p>
+                        <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+                          {event.time_from} - {event.time_to}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {event.location && (
+                    <div className="flex items-start gap-3">
+                      <MapPin className="h-5 w-5 text-zinc-500 dark:text-zinc-400 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                          Location
+                        </p>
+                        <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+                          {event.location}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Related Events */}
+              <div>
+                <h2 className="text-2xl font-bold text-zinc-50 mb-4">
+                  Related Events
+                </h2>
+
+                {relatedEvents.length === 0 ? (
+                  <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-6 text-center">
+                    <p className="text-zinc-400">
+                      No related events available at this time.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {relatedEvents.map((relatedEvent) => (
+                      <EventCard key={relatedEvent.id} event={relatedEvent} />
+                    ))}
+                  </div>
+                )}
+
+                {relatedEvents.length > 0 && event.category && (
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4 bg-white/10 border-white/20 text-zinc-50 hover:bg-white/20"
+                    onClick={() => router.push(`/?category=${event.category}`)}
+                  >
+                    View all {event.category} events
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
