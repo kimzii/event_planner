@@ -8,6 +8,7 @@ import { Event } from "../types/event";
 import { Button } from "@/components/ui/button";
 import CreateEventModal from "../../components/CreateEventModal";
 import DeleteEventDialog from "../../components/DeleteEventDialog";
+import EditEventModal from "../../components/EditEventModal";
 import { toast } from "sonner";
 import {
   Table,
@@ -28,6 +29,8 @@ export default function MyEventsPage() {
   const [showModal, setShowModal] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [eventToEdit, setEventToEdit] = useState<Event | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -60,6 +63,16 @@ export default function MyEventsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const openEditModal = (event: Event) => {
+    setEventToEdit(event);
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEventToEdit(null);
   };
 
   const openDeleteDialog = (event: Event) => {
@@ -230,7 +243,11 @@ export default function MyEventsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openEditModal(event)}
+                          >
                             Edit
                           </Button>
                           <Button
@@ -258,6 +275,14 @@ export default function MyEventsPage() {
         onClose={() => setShowModal(false)}
         onEventCreated={fetchEvents}
       />
+
+      <EditEventModal
+        isOpen={showEditModal}
+        onClose={closeEditModal}
+        onEventUpdated={fetchEvents}
+        event={eventToEdit}
+      />
+
       <DeleteEventDialog
         isOpen={!!eventToDelete}
         onClose={closeDeleteDialog}
