@@ -14,10 +14,20 @@ import {
   Tag,
   Check,
   X,
+  Share2,
+  Facebook,
+  Twitter,
+  Link as LinkIcon,
 } from "lucide-react";
 import EventCard from "../../../components/EventCards";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const RSVP_STATUS = {
   ATTENDING: "attending",
@@ -148,7 +158,6 @@ export default function EventDetailPage() {
     setRsvpLoading(true);
 
     try {
-      // Create RSVP
       const { error } = await supabase.from("rsvps").insert({
         event_id: event.id,
         user_id: session.user.id,
@@ -157,7 +166,6 @@ export default function EventDetailPage() {
 
       if (error) throw error;
 
-      // Update UI immediately
       setRsvpStatus(RSVP_STATUS.ATTENDING);
       setRsvpCount((prev) => prev + 1);
 
@@ -165,7 +173,6 @@ export default function EventDetailPage() {
         description: `You're attending "${event.title}"`,
       });
 
-      // Refetch data to sync UI with database
       await checkRsvpStatus(event.id, session.user.id);
       await fetchRsvpCount(event.id);
     } catch (error) {
@@ -175,7 +182,6 @@ export default function EventDetailPage() {
           error instanceof Error ? error.message : "Please try again.",
       });
 
-      // Refetch on error to ensure UI is in sync
       if (event && session?.user?.id) {
         await checkRsvpStatus(event.id, session.user.id);
         await fetchRsvpCount(event.id);
@@ -198,26 +204,14 @@ export default function EventDetailPage() {
     setRsvpLoading(true);
 
     try {
-      console.log("Deleting RSVP for:", {
-        event_id: event.id,
-        user_id: session.user.id,
-      });
-
-      // Delete RSVP
-      const { error, count } = await supabase
+      const { error } = await supabase
         .from("rsvps")
-        .delete({ count: "exact" })
+        .delete()
         .eq("event_id", event.id)
         .eq("user_id", session.user.id);
 
-      console.log("Delete count:", count);
+      if (error) throw error;
 
-      if (error) {
-        console.error("Delete error:", error);
-        throw error;
-      }
-
-      // Update UI immediately
       setRsvpStatus(null);
       setRsvpCount((prev) => Math.max(0, prev - 1));
 
@@ -225,7 +219,6 @@ export default function EventDetailPage() {
         description: "You have cancelled your RSVP for this event.",
       });
 
-      // Refetch data to sync UI with database
       await checkRsvpStatus(event.id, session.user.id);
       await fetchRsvpCount(event.id);
     } catch (error) {
@@ -235,13 +228,78 @@ export default function EventDetailPage() {
           error instanceof Error ? error.message : "Please try again.",
       });
 
-      // Refetch on error to ensure UI is in sync
       if (event && session?.user?.id) {
         await checkRsvpStatus(event.id, session.user.id);
         await fetchRsvpCount(event.id);
       }
     } finally {
       setRsvpLoading(false);
+    }
+  };
+
+  const handleShareFacebook = () => {
+    if (!event) return;
+
+    const currentUrl = window.location.href;
+
+    // Use Facebook's simpler share dialog
+    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+      currentUrl
+    )}`;
+
+    window.open(
+      facebookShareUrl,
+      "facebook-share-dialog",
+      "width=626,height=436"
+    );
+
+    toast.success("Opening Facebook", {
+      description: "Share this event on Facebook!",
+    });
+  };
+
+  const handleShareTwitter = () => {
+    if (!event) return;
+
+    const currentUrl = window.location.href;
+    const eventDate = new Date(event.event_date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+
+    const tweetText = `🎉 Join me at ${event.title}! 📅 ${eventDate}${
+      event.location ? ` 📍 ${event.location}` : ""
+    }`;
+
+    const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      tweetText
+    )}&url=${encodeURIComponent(currentUrl)}`;
+
+    window.open(
+      twitterShareUrl,
+      "twitter-share-dialog",
+      "width=626,height=436"
+    );
+
+    toast.success("Opening Twitter", {
+      description: "Share this event on Twitter!",
+    });
+  };
+
+  const handleCopyLink = async () => {
+    if (!event) return;
+
+    const currentUrl = window.location.href;
+
+    try {
+      await navigator.clipboard.writeText(currentUrl);
+      toast.success("Link copied!", {
+        description: "Event link copied to clipboard",
+      });
+    } catch (error) {
+      toast.error("Failed to copy link", {
+        description: "Please try again",
+      });
     }
   };
 
@@ -269,7 +327,6 @@ export default function EventDetailPage() {
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-8">
-        {/* Back Button */}
         <Button
           variant="ghost"
           onClick={() => router.back()}
@@ -280,10 +337,8 @@ export default function EventDetailPage() {
         </Button>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Event Detail */}
           <div className="lg:col-span-2">
             <div className="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-              {/* Event Image */}
               {event.image_url && (
                 <div className="relative h-96 w-full">
                   <Image
@@ -296,9 +351,7 @@ export default function EventDetailPage() {
                 </div>
               )}
 
-              {/* Event Content */}
               <div className="p-8">
-                {/* Category Badge */}
                 {event.category && (
                   <span className="inline-flex items-center px-3 py-1 text-sm font-semibold text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30 rounded-full mb-4">
                     <Tag className="mr-1 h-3 w-3" />
@@ -306,12 +359,10 @@ export default function EventDetailPage() {
                   </span>
                 )}
 
-                {/* Title */}
                 <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-6">
                   {event.title}
                 </h1>
 
-                {/* RSVP Count */}
                 {rsvpCount > 0 && (
                   <div className="flex items-center gap-2 mb-6">
                     <div className="flex -space-x-2">
@@ -333,7 +384,6 @@ export default function EventDetailPage() {
                   </div>
                 )}
 
-                {/* Description */}
                 {event.description && (
                   <div className="mt-6">
                     <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50 mb-4">
@@ -345,7 +395,6 @@ export default function EventDetailPage() {
                   </div>
                 )}
 
-                {/* Action Buttons */}
                 <div className="mt-8 flex flex-col sm:flex-row gap-4">
                   {rsvpStatus === RSVP_STATUS.ATTENDING ? (
                     <>
@@ -381,18 +430,36 @@ export default function EventDetailPage() {
                       {rsvpLoading ? "Processing..." : "RSVP to Event"}
                     </Button>
                   )}
-                  <Button variant="outline" size="lg">
-                    Share
-                  </Button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="lg">
+                        <Share2 className="mr-2 h-4 w-4" />
+                        Share
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem onClick={handleShareFacebook}>
+                        <Facebook className="mr-2 h-4 w-4" />
+                        Share on Facebook
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleShareTwitter}>
+                        <Twitter className="mr-2 h-4 w-4" />
+                        Share on Twitter
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleCopyLink}>
+                        <LinkIcon className="mr-2 h-4 w-4" />
+                        Copy Link
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-8 space-y-6">
-              {/* Event Details Card */}
               <div className="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-6">
                 <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mb-4">
                   Event Details
@@ -448,7 +515,6 @@ export default function EventDetailPage() {
                 </div>
               </div>
 
-              {/* Related Events */}
               <div>
                 <h2 className="text-2xl font-bold text-zinc-50 mb-4">
                   Related Events
