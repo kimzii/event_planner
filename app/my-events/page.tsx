@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { Event } from "../types/event";
-import EventCard from "../../components/EventCards";
 import { Button } from "@/components/ui/button";
 import CreateEventModal from "../../components/CreateEventModal";
+import DeleteEventDialog from "../../components/DeleteEventDialog";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -26,6 +27,7 @@ export default function MyEventsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -60,17 +62,23 @@ export default function MyEventsPage() {
     }
   };
 
-  const handleDelete = async (eventId: string, imageUrl?: string) => {
-    if (!confirm("Are you sure you want to delete this event?")) {
-      return;
-    }
+  const openDeleteDialog = (event: Event) => {
+    setEventToDelete(event);
+  };
 
-    setDeletingId(eventId);
+  const closeDeleteDialog = () => {
+    setEventToDelete(null);
+  };
+
+  const handleDelete = async () => {
+    if (!eventToDelete) return;
+
+    setDeletingId(eventToDelete.id);
 
     try {
       // Delete image from storage if it exists
-      if (imageUrl) {
-        const imagePath = imageUrl.split("/").pop();
+      if (eventToDelete.image_url) {
+        const imagePath = eventToDelete.image_url.split("/").pop();
         if (imagePath) {
           await supabase.storage.from("event-images").remove([imagePath]);
         }
@@ -80,19 +88,25 @@ export default function MyEventsPage() {
       const { error } = await supabase
         .from("events")
         .delete()
-        .eq("id", eventId)
+        .eq("id", eventToDelete.id)
         .eq("user_id", session?.user?.id); // Extra security check
 
       if (error) throw error;
 
       // Update local state
-      setEvents(events.filter((event) => event.id !== eventId));
-      alert("Event deleted successfully!");
+      setEvents(events.filter((event) => event.id !== eventToDelete.id));
+
+      toast.success("Event deleted successfully!", {
+        description: `"${eventToDelete.title}" has been removed.`,
+      });
+
+      closeDeleteDialog();
     } catch (error: unknown) {
       console.error("Error deleting event:", error);
-      alert(
-        error instanceof Error ? error.message : "Failed to delete event"
-      );
+      toast.error("Failed to delete event", {
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
     } finally {
       setDeletingId(null);
     }
@@ -165,8 +179,8 @@ export default function MyEventsPage() {
                             <Image
                               src={event.image_url}
                               alt={event.title}
-                              fill
                               className="object-cover"
+                              fill
                             />
                           </div>
                         ) : (
@@ -222,13 +236,11 @@ export default function MyEventsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() =>
-                              handleDelete(event.id, event.image_url)
-                            }
+                            onClick={() => openDeleteDialog(event)}
                             disabled={deletingId === event.id}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
                           >
-                            {deletingId === event.id ? "Deleting..." : "Delete"}
+                            Delete
                           </Button>
                         </div>
                       </TableCell>
@@ -245,6 +257,13 @@ export default function MyEventsPage() {
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         onEventCreated={fetchEvents}
+      />
+      <DeleteEventDialog
+        isOpen={!!eventToDelete}
+        onClose={closeDeleteDialog}
+        onConfirm={handleDelete}
+        eventTitle={eventToDelete?.title || ""}
+        isDeleting={!!deletingId}
       />
     </div>
   );

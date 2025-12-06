@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabase";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { toast } from "sonner";
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -89,7 +90,14 @@ export default function CreateEventModal({
       let imageUrl = null;
 
       if (imageFile) {
+        toast.loading("Uploading image...");
         imageUrl = await uploadImage(imageFile);
+        toast.dismiss();
+        
+        if (!imageUrl && imageFile) {
+          // Image upload failed
+          return;
+        }
       }
 
       const { error } = await supabase.from("events").insert([
@@ -115,10 +123,15 @@ export default function CreateEventModal({
       setImagePreview(null);
       onEventCreated();
       onClose();
-      alert("Event created successfully!");
+      
+      toast.success("Event created successfully!", {
+        description: `"${formData.title}" has been added to your events.`,
+      });
     } catch (error: unknown) {
       console.error("Error creating event:", error);
-      alert(error instanceof Error ? error.message : "Failed to create event");
+      toast.error("Failed to create event", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
     } finally {
       setLoading(false);
     }
