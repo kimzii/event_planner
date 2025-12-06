@@ -8,6 +8,16 @@ import { Event } from "../types/event";
 import EventCard from "../../components/EventCards";
 import { Button } from "@/components/ui/button";
 import CreateEventModal from "../../components/CreateEventModal";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import Image from "next/image";
 
 export default function MyEventsPage() {
   const { data: session, status } = useSession();
@@ -52,9 +62,7 @@ export default function MyEventsPage() {
   if (status === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg dark:text-zinc-400">
-          Loading...
-        </div>
+        <div className="text-lg dark:text-zinc-400">Loading...</div>
       </div>
     );
   }
@@ -79,7 +87,7 @@ export default function MyEventsPage() {
           <Button onClick={() => setShowModal(true)}>+ New Event</Button>
         </div>
 
-        {/* Events List */}
+        {/* Events Table */}
         <div className="space-y-4">
           {loading ? (
             <div className="text-center py-12 text-zinc-600 dark:text-zinc-400">
@@ -95,10 +103,92 @@ export default function MyEventsPage() {
               </Button>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {events.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
+            <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+              <Table>
+                <TableCaption>A list of your created events.</TableCaption>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">Image</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {events.map((event) => (
+                    <TableRow key={event.id}>
+                      <TableCell>
+                        {event.image_url ? (
+                          <div className="relative h-16 w-16 rounded-md overflow-hidden">
+                            <Image
+                              src={event.image_url}
+                              alt={event.title}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="h-16 w-16 rounded-md bg-zinc-100 dark:bg-zinc-700" />
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <div>
+                          <p className="font-semibold">{event.title}</p>
+                          {event.description && (
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-1">
+                              {event.description}
+                            </p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {event.category && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                            {event.category}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(event.event_date).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          }
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {event.time_from && event.time_to ? (
+                          <span className="text-sm">
+                            {event.time_from} - {event.time_to}
+                          </span>
+                        ) : (
+                          <span className="text-zinc-400">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {event.location || (
+                          <span className="text-zinc-400">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="sm">
+                            Edit
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            Delete
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </div>
