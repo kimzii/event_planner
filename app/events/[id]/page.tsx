@@ -5,6 +5,17 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import { Event } from "../../types/event";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -211,7 +222,6 @@ export default function EventDetailPage() {
           });
         } catch (emailError) {
           console.error("Failed to send email:", emailError);
-          // Don't show error to user, RSVP was still successful
         }
       }
 
@@ -284,7 +294,6 @@ export default function EventDetailPage() {
 
     const currentUrl = window.location.href;
 
-    // Use Facebook's simpler share dialog
     const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
       currentUrl
     )}`;
@@ -348,7 +357,7 @@ export default function EventDetailPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg text-zinc-400">Loading event...</div>
+        <div className="text-lg text-muted-foreground">Loading event...</div>
       </div>
     );
   }
@@ -356,236 +365,248 @@ export default function EventDetailPage() {
   if (!event) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-zinc-50 mb-4">
-            Event not found
-          </h2>
-          <Button onClick={() => router.push("/")}>Back to Events</Button>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Event not found</CardTitle>
+            <CardDescription>
+              The event you&apos;re looking for doesn&apos;t exist or has been removed.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button onClick={() => router.push("/")} className="w-full">
+              Back to Events
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="mx-auto max-w-7xl px-4 py-8">
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="mb-6 text-zinc-300 hover:text-zinc-50"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
+    <div className="container mx-auto px-4 py-8">
+      <Button variant="ghost" onClick={() => router.back()} className="mb-6 text-primary-foreground">
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back
+      </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-              {event.image_url && (
-                <div className="relative h-96 w-full">
-                  <Image
-                    src={event.image_url}
-                    alt={event.title}
-                    fill
-                    className="object-cover"
-                    priority
-                  />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Event Detail */}
+        <div className="lg:col-span-2">
+          <Card>
+            {event.image_url && (
+              <div className="relative h-96 w-full overflow-hidden rounded-t-lg">
+                <Image
+                  src={event.image_url}
+                  alt={event.title}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+            )}
+
+            <CardHeader>
+              {event.category && (
+                <Badge variant="secondary" className="w-fit mb-2">
+                  <Tag className="mr-1 h-3 w-3" />
+                  {event.category}
+                </Badge>
+              )}
+              <CardTitle className="text-4xl">{event.title}</CardTitle>
+
+              {rsvpCount > 0 && (
+                <div className="flex items-center gap-2 pt-4">
+                  <div className="flex -space-x-2">
+                    {[...Array(Math.min(rsvpCount, 3))].map((_, i) => (
+                      <Avatar
+                        key={i}
+                        className="h-8 w-8 border-2 border-background"
+                      >
+                        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xs">
+                          {i + 1}
+                        </AvatarFallback>
+                      </Avatar>
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-semibold text-foreground">
+                      {rsvpCount}
+                    </span>{" "}
+                    {rsvpCount === 1 ? "person" : "people"} attending
+                  </p>
                 </div>
               )}
+            </CardHeader>
 
-              <div className="p-8">
-                {event.category && (
-                  <span className="inline-flex items-center px-3 py-1 text-sm font-semibold text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30 rounded-full mb-4">
-                    <Tag className="mr-1 h-3 w-3" />
-                    {event.category}
-                  </span>
-                )}
-
-                <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-6">
-                  {event.title}
-                </h1>
-
-                {rsvpCount > 0 && (
-                  <div className="flex items-center gap-2 mb-6">
-                    <div className="flex -space-x-2">
-                      {[...Array(Math.min(rsvpCount, 3))].map((_, i) => (
-                        <div
-                          key={i}
-                          className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-white dark:border-zinc-800 flex items-center justify-center text-white text-xs font-semibold"
-                        >
-                          {i + 1}
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-50">
-                        {rsvpCount}
-                      </span>{" "}
-                      {rsvpCount === 1 ? "person" : "people"} attending
-                    </p>
-                  </div>
-                )}
-
-                {event.description && (
-                  <div className="mt-6">
-                    <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50 mb-4">
+            <CardContent className="space-y-6">
+              {event.description && (
+                <>
+                  <Separator />
+                  <div>
+                    <h2 className="text-2xl font-semibold mb-4">
                       About this event
                     </h2>
-                    <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-line">
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                       {event.description}
                     </p>
                   </div>
-                )}
+                </>
+              )}
+            </CardContent>
 
-                <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                  {rsvpStatus === RSVP_STATUS.ATTENDING ? (
-                    <>
-                      <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex-1">
-                        <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
-                        <span className="text-green-700 dark:text-green-300 font-medium">
-                          You&apos;re Attending
-                        </span>
-                      </div>
-                      <Button
-                        size="lg"
-                        variant="destructive"
-                        onClick={handleCancelRsvp}
-                        disabled={rsvpLoading}
-                      >
-                        {rsvpLoading ? (
-                          "Cancelling..."
-                        ) : (
-                          <>
-                            <X className="mr-2 h-4 w-4" />
-                            Cancel RSVP
-                          </>
-                        )}
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      size="lg"
-                      className="flex-1"
-                      onClick={handleRsvp}
-                      disabled={rsvpLoading}
-                    >
-                      {rsvpLoading ? "Processing..." : "RSVP to Event"}
-                    </Button>
-                  )}
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="lg">
-                        <Share2 className="mr-2 h-4 w-4" />
-                        Share
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={handleShareFacebook}>
-                        <Facebook className="mr-2 h-4 w-4" />
-                        Share on Facebook
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleShareTwitter}>
-                        <Twitter className="mr-2 h-4 w-4" />
-                        Share on Twitter
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleCopyLink}>
-                        <LinkIcon className="mr-2 h-4 w-4" />
-                        Copy Link
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-1">
-            <div className="sticky top-8 space-y-6">
-              <div className="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-6">
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mb-4">
-                  Event Details
-                </h2>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Calendar className="h-5 w-5 text-zinc-500 dark:text-zinc-400 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                        Date
-                      </p>
-                      <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
-                        {new Date(event.event_date).toLocaleDateString(
-                          "en-US",
-                          {
-                            weekday: "long",
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          }
-                        )}
-                      </p>
-                    </div>
+            <CardFooter className="flex flex-col sm:flex-row gap-4">
+              {rsvpStatus === RSVP_STATUS.ATTENDING ? (
+                <>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md flex-1">
+                    <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <span className="text-green-700 dark:text-green-300 font-medium">
+                      You&apos;re Attending
+                    </span>
                   </div>
+                  <Button
+                    size="lg"
+                    variant="destructive"
+                    onClick={handleCancelRsvp}
+                    disabled={rsvpLoading}
+                  >
+                    {rsvpLoading ? (
+                      "Cancelling..."
+                    ) : (
+                      <>
+                        <X className="mr-2 h-4 w-4" />
+                        Cancel RSVP
+                      </>
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  size="lg"
+                  className="flex-1"
+                  onClick={handleRsvp}
+                  disabled={rsvpLoading}
+                >
+                  {rsvpLoading ? "Processing..." : "RSVP to Event"}
+                </Button>
+              )}
 
-                  {event.time_from && event.time_to && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="lg">
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={handleShareFacebook}>
+                    <Facebook className="mr-2 h-4 w-4" />
+                    Share on Facebook
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleShareTwitter}>
+                    <Twitter className="mr-2 h-4 w-4" />
+                    Share on Twitter
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleCopyLink}>
+                    <LinkIcon className="mr-2 h-4 w-4" />
+                    Copy Link
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </CardFooter>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-8 space-y-6">
+            {/* Event Details Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Event Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <Calendar className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Date
+                    </p>
+                    <p className="text-base font-semibold">
+                      {new Date(event.event_date).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                {event.time_from && event.time_to && (
+                  <>
+                    <Separator />
                     <div className="flex items-start gap-3">
-                      <Clock className="h-5 w-5 text-zinc-500 dark:text-zinc-400 mt-0.5 flex-shrink-0" />
+                      <Clock className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                        <p className="text-sm font-medium text-muted-foreground">
                           Time
                         </p>
-                        <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+                        <p className="text-base font-semibold">
                           {event.time_from} - {event.time_to}
                         </p>
                       </div>
                     </div>
-                  )}
+                  </>
+                )}
 
-                  {event.location && (
+                {event.location && (
+                  <>
+                    <Separator />
                     <div className="flex items-start gap-3">
-                      <MapPin className="h-5 w-5 text-zinc-500 dark:text-zinc-400 mt-0.5 flex-shrink-0" />
+                      <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                        <p className="text-sm font-medium text-muted-foreground">
                           Location
                         </p>
-                        <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+                        <p className="text-base font-semibold">
                           {event.location}
                         </p>
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
 
-              <div>
-                <h2 className="text-2xl font-bold text-zinc-50 mb-4">
-                  Related Events
-                </h2>
+            {/* Related Events */}
+            <div>
+              <h2 className="text-2xl text-primary-foreground font-bold mb-4">Related Events</h2>
 
-                {relatedEvents.length === 0 ? (
-                  <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 p-6 text-center">
-                    <p className="text-zinc-400">
+              {relatedEvents.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6 text-center">
+                    <p className="text-muted-foreground">
                       No related events available at this time.
                     </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {relatedEvents.map((relatedEvent) => (
-                      <EventCard key={relatedEvent.id} event={relatedEvent} />
-                    ))}
-                  </div>
-                )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {relatedEvents.map((relatedEvent) => (
+                    <EventCard key={relatedEvent.id} event={relatedEvent} />
+                  ))}
+                </div>
+              )}
 
-                {relatedEvents.length > 0 && event.category && (
-                  <Button
-                    variant="outline"
-                    className="w-full mt-4 bg-white/10 border-white/20 text-zinc-50 hover:bg-white/20"
-                    onClick={() => router.push(`/?category=${event.category}`)}
-                  >
-                    View all {event.category} events
-                  </Button>
-                )}
-              </div>
+              {relatedEvents.length > 0 && event.category && (
+                <Button
+                  variant="outline"
+                  className="w-full mt-4"
+                  onClick={() => router.push(`/?category=${event.category}`)}
+                >
+                  View all {event.category} events
+                </Button>
+              )}
             </div>
           </div>
         </div>

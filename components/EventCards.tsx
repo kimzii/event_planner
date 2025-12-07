@@ -1,63 +1,93 @@
-import { Event } from "../app/types/event";
+import { Event } from "@/app/types/event";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
+import { Calendar, MapPin, Clock } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface EventCardProps {
   event: Event;
 }
 
 export default function EventCard({ event }: EventCardProps) {
-  return (
-    <Link href={`/events/${event.id}`}>
-      <div className="relative group h-full cursor-pointer">
-        {/* Gradient border wrapper */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg opacity-0 group-hover:opacity-100 transition duration-300 blur"></div>
+  const router = useRouter();
 
-        {/* Card content */}
-        <div className="relative h-full bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
-          {event.image_url && (
-            <div className="relative h-48 w-full flex-shrink-0">
-              <Image
-                src={event.image_url}
-                alt={event.title}
-                fill
-                className="object-cover"
-                loading="eager"
-              />
-            </div>
-          )}
-          <div className="p-6 flex-1 flex flex-col">
-            {event.category && (
-              <span className="inline-block px-3 py-1 text-xs font-semibold text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30 rounded-full mb-2 w-fit">
-                {event.category}
-              </span>
-            )}
-            <h3 className="font-semibold text-lg text-zinc-900 dark:text-zinc-50 mb-2">
-              {event.title}
-            </h3>
-            {event.description && (
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 line-clamp-2">
-                {event.description}
-              </p>
-            )}
-            <div className="space-y-1 text-sm mt-auto">
-              <p className="text-zinc-700 dark:text-zinc-300">
-                📅 {new Date(event.event_date).toLocaleDateString()}
-              </p>
-              {event.time_from && event.time_to && (
-                <p className="text-zinc-700 dark:text-zinc-300">
-                  🕒 {event.time_from} - {event.time_to}
-                </p>
-              )}
-              {event.location && (
-                <p className="text-zinc-700 dark:text-zinc-300">
-                  📍 {event.location}
-                </p>
-              )}
-            </div>
-          </div>
+  return (
+    <Card
+      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group"
+      onClick={() => router.push(`/events/${event.id}`)}
+    >
+      {event.image_url && (
+        <div className="relative h-48 w-full overflow-hidden">
+          <Image
+            src={event.image_url}
+            alt={event.title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
         </div>
-      </div>
-    </Link>
+      )}
+
+      <CardHeader>
+        {event.category && (
+          <Badge variant="secondary" className="w-fit mb-2">
+            {event.category}
+          </Badge>
+        )}
+        <CardTitle className="line-clamp-2">{event.title}</CardTitle>
+        {event.description && (
+          <CardDescription className="line-clamp-2">
+            {event.description}
+          </CardDescription>
+        )}
+      </CardHeader>
+
+      <CardContent className="space-y-2">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar className="h-4 w-4 flex-shrink-0" />
+          <span>
+            {new Date(event.event_date).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </span>
+        </div>
+
+        {event.time_from && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="h-4 w-4 flex-shrink-0" />
+            <span>{event.time_from}</span>
+          </div>
+        )}
+
+        {event.location && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4 flex-shrink-0" />
+            <span className="line-clamp-1">{event.location}</span>
+          </div>
+        )}
+      </CardContent>
+
+      <CardFooter>
+        <Button
+          className="w-full"
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/events/${event.id}`);
+          }}
+        >
+          View Details
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
