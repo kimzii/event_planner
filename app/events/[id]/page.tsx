@@ -16,6 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -29,6 +30,7 @@ import {
   Facebook,
   Twitter,
   Link as LinkIcon,
+  CalendarX,
 } from "lucide-react";
 import EventCard from "../../../components/EventCards";
 import { useSession } from "next-auth/react";
@@ -55,6 +57,15 @@ export default function EventDetailPage() {
   const [rsvpStatus, setRsvpStatus] = useState<string | null>(null);
   const [rsvpLoading, setRsvpLoading] = useState(false);
   const [rsvpCount, setRsvpCount] = useState(0);
+
+  // Check if event has passed
+  const isEventExpired = (eventDate: string): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const eventDateTime = new Date(eventDate);
+    eventDateTime.setHours(0, 0, 0, 0);
+    return eventDateTime < today;
+  };
 
   useEffect(() => {
     if (params.id) {
@@ -369,7 +380,8 @@ export default function EventDetailPage() {
           <CardHeader>
             <CardTitle>Event not found</CardTitle>
             <CardDescription>
-              The event you&apos;re looking for doesn&apos;t exist or has been removed.
+              The event you&apos;re looking for doesn&apos;t exist or has been
+              removed.
             </CardDescription>
           </CardHeader>
           <CardFooter>
@@ -381,6 +393,8 @@ export default function EventDetailPage() {
       </div>
     );
   }
+
+  const eventExpired = isEventExpired(event.event_date);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -394,7 +408,7 @@ export default function EventDetailPage() {
         <div className="lg:col-span-2">
           <Card>
             {event.image_url && (
-              <div className="relative h-96 w-full overflow-hidden">
+              <div className="relative h-96 w-full overflow-hidden rounded-t-lg">
                 <Image
                   src={event.image_url}
                   alt={event.title}
@@ -402,16 +416,29 @@ export default function EventDetailPage() {
                   className="object-cover"
                   priority
                 />
+                {eventExpired && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <Badge variant="secondary" className="text-lg px-6 py-2">
+                      <CalendarX className="mr-2 h-5 w-5" />
+                      Event Ended
+                    </Badge>
+                  </div>
+                )}
               </div>
             )}
 
             <CardHeader>
-              {event.category && (
-                <Badge variant="secondary" className="w-fit mb-2">
-                  <Tag className="mr-1 h-3 w-3" />
-                  {event.category}
-                </Badge>
-              )}
+              <div className="flex items-center gap-2 mb-2">
+                {event.category && (
+                  <Badge variant="secondary">
+                    <Tag className="mr-1 h-3 w-3" />
+                    {event.category}
+                  </Badge>
+                )}
+                {eventExpired && (
+                  <Badge variant="destructive">Past Event</Badge>
+                )}
+              </div>
               <CardTitle className="text-4xl">{event.title}</CardTitle>
 
               {rsvpCount > 0 && (
@@ -432,13 +459,25 @@ export default function EventDetailPage() {
                     <span className="font-semibold text-foreground">
                       {rsvpCount}
                     </span>{" "}
-                    {rsvpCount === 1 ? "person" : "people"} attending
+                    {rsvpCount === 1 ? "person" : "people"}{" "}
+                    {eventExpired ? "attended" : "attending"}
                   </p>
                 </div>
               )}
             </CardHeader>
 
             <CardContent className="space-y-6">
+              {eventExpired && (
+                <Alert>
+                  <CalendarX className="h-4 w-4" />
+                  <AlertDescription>
+                    This event has already ended. You can no longer RSVP, but
+                    you can still view the event details and share it with
+                    others.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {event.description && (
                 <>
                   <Separator />
@@ -455,7 +494,14 @@ export default function EventDetailPage() {
             </CardContent>
 
             <CardFooter className="flex flex-col sm:flex-row gap-4">
-              {rsvpStatus === RSVP_STATUS.ATTENDING ? (
+              {eventExpired ? (
+                <div className="flex items-center justify-center gap-2 px-4 py-3 bg-muted rounded-md flex-1">
+                  <CalendarX className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-muted-foreground font-medium">
+                    Event Has Ended
+                  </span>
+                </div>
+              ) : rsvpStatus === RSVP_STATUS.ATTENDING ? (
                 <>
                   <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md flex-1">
                     <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
