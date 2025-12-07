@@ -173,6 +173,48 @@ export default function EventDetailPage() {
         description: `You're attending "${event.title}"`,
       });
 
+      // Send confirmation email
+      if (session.user.email) {
+        try {
+          const eventDate = new Date(event.event_date).toLocaleDateString(
+            "en-US",
+            {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }
+          );
+
+          const eventTime =
+            event.time_from && event.time_to
+              ? `${event.time_from} - ${event.time_to}`
+              : null;
+
+          await fetch("/api/send-rsvp-email", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userEmail: session.user.email,
+              userName: session.user.name,
+              eventTitle: event.title,
+              eventDate: eventDate,
+              eventLocation: event.location,
+              eventTime: eventTime,
+            }),
+          });
+
+          toast.success("Confirmation email sent!", {
+            description: "Check your inbox for event details",
+          });
+        } catch (emailError) {
+          console.error("Failed to send email:", emailError);
+          // Don't show error to user, RSVP was still successful
+        }
+      }
+
       await checkRsvpStatus(event.id, session.user.id);
       await fetchRsvpCount(event.id);
     } catch (error) {
