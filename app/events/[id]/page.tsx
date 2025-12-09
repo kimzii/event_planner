@@ -408,7 +408,7 @@ export default function EventDetailPage() {
         <div className="lg:col-span-2">
           <Card>
             {event.image_url && (
-              <div className="relative h-96 w-full overflow-hidden rounded-t-lg">
+              <div className="relative h-96 w-full overflow-hidden">
                 <Image
                   src={event.image_url}
                   alt={event.title}

@@ -4,27 +4,7 @@ import { useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import Image from "next/image";
-import { toast } from "sonner";
-import { Upload } from "lucide-react";
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -33,7 +13,6 @@ interface CreateEventModalProps {
 }
 
 const CATEGORIES = [
-  "All",
   "Conference",
   "Workshop",
   "Seminar",
@@ -110,13 +89,7 @@ export default function CreateEventModal({
       let imageUrl = null;
 
       if (imageFile) {
-        toast.loading("Uploading image...");
         imageUrl = await uploadImage(imageFile);
-        toast.dismiss();
-
-        if (!imageUrl && imageFile) {
-          return;
-        }
       }
 
       const { error } = await supabase.from("events").insert([
@@ -142,198 +115,170 @@ export default function CreateEventModal({
       setImagePreview(null);
       onEventCreated();
       onClose();
-
-      toast.success("Event created successfully!", {
-        description: `"${formData.title}" has been added to your events.`,
-      });
+      alert("Event created successfully!");
     } catch (error: unknown) {
       console.error("Error creating event:", error);
-      toast.error("Failed to create event", {
-        description:
-          error instanceof Error ? error.message : "Please try again.",
-      });
+      alert(error instanceof Error ? error.message : "Failed to create event");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create New Event</DialogTitle>
-          <DialogDescription>
-            Fill in the details below to create a new event
-          </DialogDescription>
-        </DialogHeader>
+  if (!isOpen) return null;
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white dark:bg-zinc-800 rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-4">
+          Create New Event
+        </h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Image Upload */}
-          <div className="space-y-2">
-            <Label htmlFor="image">Event Image</Label>
-            {imagePreview ? (
-              <div className="relative w-full h-48 rounded-lg overflow-hidden border">
-                <Image
-                  src={imagePreview}
-                  alt="Preview"
-                  fill
-                  className="object-cover"
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="absolute top-2 right-2"
-                  onClick={() => {
-                    setImageFile(null);
-                    setImagePreview(null);
-                  }}
-                >
-                  Remove
-                </Button>
-              </div>
-            ) : (
-              <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary transition-colors">
-                <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
-                <Label
-                  htmlFor="image"
-                  className="cursor-pointer text-sm text-muted-foreground"
-                >
-                  Click to upload or drag and drop
-                  <br />
-                  <span className="text-xs">PNG, JPG up to 10MB</span>
-                </Label>
-                <Input
-                  id="image"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-              </div>
-            )}
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+              Event Image
+            </label>
+            <div className="space-y-2">
+              {imagePreview && (
+                <div className="relative w-full h-48 rounded-lg overflow-hidden">
+                  <Image
+                    src={imagePreview}
+                    alt="Preview"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300"
+              />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Title */}
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="title">
-                Title <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="title"
-                required
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-                placeholder="Enter event title"
-              />
-            </div>
+          {/* Title */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              Title *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
+            />
+          </div>
 
-            {/* Category */}
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, category: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              Category
+            </label>
+            <select
+              value={formData.category}
+              onChange={(e) =>
+                setFormData({ ...formData, category: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
+            >
+              <option value="">Select a category</option>
+              {CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
 
-            {/* Date */}
-            <div className="space-y-2">
-              <Label htmlFor="event_date">
-                Date <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="event_date"
-                type="date"
-                required
-                value={formData.event_date}
-                onChange={(e) =>
-                  setFormData({ ...formData, event_date: e.target.value })
-                }
-              />
-            </div>
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              Description
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              rows={3}
+              className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
+            />
+          </div>
 
-            {/* Time From */}
-            <div className="space-y-2">
-              <Label htmlFor="time_from">
-                Time From <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="time_from"
+          {/* Date */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              Date *
+            </label>
+            <input
+              type="date"
+              required
+              value={formData.event_date}
+              onChange={(e) =>
+                setFormData({ ...formData, event_date: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
+            />
+          </div>
+
+          {/* Time From and Time To */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                Time From *
+              </label>
+              <input
                 type="time"
                 required
                 value={formData.time_from}
                 onChange={(e) =>
                   setFormData({ ...formData, time_from: e.target.value })
                 }
+                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
               />
             </div>
-
-            {/* Time To */}
-            <div className="space-y-2">
-              <Label htmlFor="time_to">
-                Time To <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="time_to"
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                Time To *
+              </label>
+              <input
                 type="time"
                 required
                 value={formData.time_to}
                 onChange={(e) =>
                   setFormData({ ...formData, time_to: e.target.value })
                 }
-              />
-            </div>
-
-            {/* Location */}
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
-                }
-                placeholder="Enter event location"
-              />
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                placeholder="Enter event description"
-                rows={4}
+                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
               />
             </div>
           </div>
 
-          <DialogFooter>
+          {/* Location */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              Location
+            </label>
+            <input
+              type="text"
+              value={formData.location}
+              onChange={(e) =>
+                setFormData({ ...formData, location: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50"
+            />
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-2 justify-end">
             <Button
               type="button"
-              variant="outline"
               onClick={onClose}
+              variant="outline"
               disabled={loading}
             >
               Cancel
@@ -341,9 +286,9 @@ export default function CreateEventModal({
             <Button type="submit" disabled={loading}>
               {loading ? "Creating..." : "Create Event"}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
